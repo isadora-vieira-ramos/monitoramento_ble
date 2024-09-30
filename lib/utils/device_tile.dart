@@ -1,9 +1,52 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:monitoramento_ble/utils/extra.dart';
 
-class DeviceTile extends StatelessWidget {
+class DeviceTile extends StatefulWidget {
   final BluetoothDevice device;
   const DeviceTile({super.key, required this.device});
+
+  @override
+  State<DeviceTile> createState() => _DeviceTileState();
+}
+
+class _DeviceTileState extends State<DeviceTile> {
+  BluetoothConnectionState _connectionState = BluetoothConnectionState.disconnected;
+  late StreamSubscription<BluetoothConnectionState> _connectionStateSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _connectionStateSubscription = widget.device.connectionState.listen((state) {
+      _connectionState = state;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectionStateSubscription.cancel();
+    super.dispose();
+  }
+
+  bool get isConnected {
+    return _connectionState == BluetoothConnectionState.connected;
+  }
+
+  void connectToDevice(){
+     widget.device.connectAndUpdateStream().then(
+      (value) => Fluttertoast.showToast(msg: "Conectado!.")
+      ).catchError((e) {
+        Fluttertoast.showToast(msg: "Não foi possível conectar.");
+      }
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +61,7 @@ class DeviceTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              device.advName,
+              widget.device.advName,
               style: const TextStyle(
                 fontSize: 18
               ),
@@ -27,9 +70,9 @@ class DeviceTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextButton(onPressed: (){}, child: const Text("Conectar")),
-                TextButton(onPressed: (){}, child: const Text("Escrever")),
-                TextButton(onPressed: (){}, child: const Text("Ler"))
+                TextButton(onPressed: connectToDevice, child: const Text("Conectar")),
+                TextButton(onPressed: isConnected? (){}: (){}, child: const Text("Escrever")),
+                TextButton(onPressed: isConnected? (){}: (){}, child: const Text("Ler"))
               ],
             ),
             const Padding(
