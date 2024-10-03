@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:monitoramento_ble/screens/graphs.dart';
 import 'package:monitoramento_ble/utils/extra.dart';
 
 class DeviceTile extends StatefulWidget {
@@ -36,7 +37,7 @@ class _DeviceTileState extends State<DeviceTile> {
   }
 
   bool get isConnected {
-    return _connectionState == BluetoothConnectionState.connected;
+    return widget.device.isConnected;
   }
 
   void connectToDevice(){
@@ -47,6 +48,45 @@ class _DeviceTileState extends State<DeviceTile> {
       }
     );
   }
+
+  Future<void> disconnectToDevice() async {
+    try {
+      await widget.device.disconnectAndUpdateStream();
+      Fluttertoast.showToast(msg: "Desconectado");
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Não foi possível desconectar");
+    }
+  }
+
+  void read() async {
+    try{
+      List<BluetoothService> services = await widget.device.discoverServices();
+      if(services.isNotEmpty){
+        for (BluetoothService service in services) {
+          for (BluetoothCharacteristic characteristic in service.characteristics) {
+            if(characteristic.properties.read){
+              List<int> value = await characteristic.read();
+              Fluttertoast.showToast(msg: value.toString());
+            }
+          }
+        }
+      }else{
+        Fluttertoast.showToast(msg: "Encontrado");
+      }
+    }catch(ex){
+      Fluttertoast.showToast(msg: "Exceção: ${ex.toString()}");
+    }
+  }
+
+  void showGraphs(){
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const Graphs()));
+  }
+
+  void connectFirst(){
+    Fluttertoast.showToast(msg: "Conecte primeiro");
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -60,19 +100,50 @@ class _DeviceTileState extends State<DeviceTile> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.device.advName,
-              style: const TextStyle(
-                fontSize: 18
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  widget.device.advName,
+                  style: const TextStyle(
+                    fontSize: 18
+                  ),
+                ),
+                if(isConnected)...[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          "Conectado",
+                          style: TextStyle(
+                            color: Colors.white
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                ]
+              ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextButton(onPressed: connectToDevice, child: const Text("Conectar")),
-                TextButton(onPressed: isConnected? (){}: (){}, child: const Text("Escrever")),
-                TextButton(onPressed: isConnected? (){}: (){}, child: const Text("Ler"))
+                if(!isConnected)...[
+                  TextButton(onPressed: connectToDevice, child: const Text("Conectar")),
+                ],
+                if(isConnected)...[
+                  TextButton(onPressed: disconnectToDevice, child: const Text("Desconectar")),
+                ],   
+                TextButton(onPressed: isConnected? read: connectFirst, child: const Text("Ler")),
+                TextButton(onPressed: isConnected? showGraphs: connectFirst, child: const Text("Visualizar"))
               ],
             ),
             const Padding(
