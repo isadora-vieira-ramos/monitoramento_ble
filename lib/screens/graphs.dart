@@ -1,20 +1,42 @@
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Graphs extends StatefulWidget {
-  const Graphs({super.key});
+  final Future<int> Function() read;
+  const Graphs({super.key, required this.read});
 
   @override
   State<Graphs> createState() => _GraphsState();
 }
 
 class _GraphsState extends State<Graphs> {
+  
+  var counter = 0;
+  Timer? timer;
+  bool isTimerActive = true;
 
   List<Color> gradientColors = [
     Colors.cyan,
     Colors.blue
   ];
+
+  List<int> valuesRead = [];
   bool showAvg = false;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      int value = await widget.read();
+      setState(() {
+        valuesRead.add(value);
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

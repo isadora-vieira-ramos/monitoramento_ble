@@ -58,15 +58,18 @@ class _DeviceTileState extends State<DeviceTile> {
     }
   }
 
-  void read() async {
+  Future<int> read() async {
     try{
       List<BluetoothService> services = await widget.device.discoverServices();
       if(services.isNotEmpty){
         for (BluetoothService service in services) {
-          for (BluetoothCharacteristic characteristic in service.characteristics) {
-            if(characteristic.properties.read){
-              List<int> value = await characteristic.read();
-              Fluttertoast.showToast(msg: value.toString());
+          if(service.uuid.toString() == "4fafc201-1fb5-459e-8fcc-c5c9c331914b"){
+            for (BluetoothCharacteristic characteristic in service.characteristics) {
+              if(characteristic.uuid.toString() == "beb5483e-36e1-4688-b7f5-ea07361b26a8"){
+                List<int> value = await characteristic.read();
+                Fluttertoast.showToast(msg: value.toString());
+                return value[0];
+              }
             }
           }
         }
@@ -76,10 +79,11 @@ class _DeviceTileState extends State<DeviceTile> {
     }catch(ex){
       Fluttertoast.showToast(msg: "Exceção: ${ex.toString()}");
     }
+    return 0;
   }
 
   void showGraphs(){
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const Graphs()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Graphs(read: read)));
   }
 
   void connectFirst(){
