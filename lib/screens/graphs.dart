@@ -1,331 +1,124 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
-class Graphs extends StatefulWidget {
+class GraphsScreen extends StatefulWidget {
   final Future<int> Function() read;
-  const Graphs({super.key, required this.read});
+  const GraphsScreen({super.key, required this.read});
+
+  final Color sinColor = Colors.blue;
+  final Color cosColor = Colors.pink;
 
   @override
-  State<Graphs> createState() => _GraphsState();
+  State<GraphsScreen> createState() => _GraphsScreenState();
 }
 
-class _GraphsState extends State<Graphs> {
-  
-  var counter = 0;
-  Timer? timer;
-  bool isTimerActive = true;
+class _GraphsScreenState extends State<GraphsScreen> {
+  final limitCount = 100;
+  final valuesRead = <FlSpot>[];
 
-  List<Color> gradientColors = [
-    Colors.cyan,
-    Colors.blue
-  ];
+  double xValue = 0;
+  double step = 0.05;
 
-  List<int> valuesRead = [];
-  bool showAvg = false;
+  late Timer timer;
 
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    timer = Timer.periodic(const Duration(milliseconds: 40), (timer) async {
+      while (valuesRead.length > limitCount) {
+        valuesRead.removeAt(0);
+      }
       int value = await widget.read();
+      double dValue = value.toDouble();
       setState(() {
-        valuesRead.add(value);
+        valuesRead.add(FlSpot(xValue, dValue));
       });
+      xValue += step;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Visualizar os dados",
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.blue.shade500,
-              ),
-            ),
-            Stack(
+    return valuesRead.isNotEmpty
+        ? Scaffold(
+          backgroundColor: Colors.grey.shade200,
+          body: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AspectRatio(
-                  aspectRatio: 1.70,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      right: 18,
-                      left: 12,
-                      top: 24,
-                      bottom: 12,
-                    ),
-                    child: LineChart(
-                      showAvg ? avgData() : mainData(),
-                    ),
+                const SizedBox(height: 12),
+                Text(
+                  'Valor de x: ${xValue.toStringAsFixed(1)}',
+                  style: TextStyle(
+                    color: widget.sinColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(
-                  width: 60,
-                  height: 34,
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        showAvg = !showAvg;
-                      });
-                    },
-                    child: Text(
-                      'avg',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: showAvg ? Colors.white.withOpacity(0.5) : Colors.white,
+                Text(
+                  'Último valor lido: ${valuesRead.last.y.toStringAsFixed(1)}',
+                  style: TextStyle(
+                    color: widget.sinColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                AspectRatio(
+                  aspectRatio: 1.5,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 24.0),
+                    child: LineChart(
+                      LineChartData(
+                        minY: -1,
+                        maxY: 256,
+                        minX: valuesRead.first.x,
+                        maxX: valuesRead.last.x,
+                        lineTouchData: const LineTouchData(enabled: false),
+                        clipData: const FlClipData.all(),
+                        gridData: const FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                        ),
+                        borderData: FlBorderData(show: false),
+                        lineBarsData: [
+                          sinLine(valuesRead),
+                        ],
+                        titlesData: const FlTitlesData(
+                          show: false,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  LineChartData mainData() {
-    return LineChartData(
-      gridData: FlGridData(
-        show: true,
-        drawVerticalLine: true,
-        horizontalInterval: 1,
-        verticalInterval: 1,
-        getDrawingHorizontalLine: (value) {
-          return const FlLine(
-            color:Colors.black,
-            strokeWidth: 1,
-          );
-        },
-        getDrawingVerticalLine: (value) {
-          return const FlLine(
-            color: Colors.black,
-            strokeWidth: 1,
-          );
-        },
-      ),
-      titlesData: FlTitlesData(
-        show: true,
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 30,
-            interval: 1,
-            getTitlesWidget: bottomTitleWidgets,
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            interval: 1,
-            getTitlesWidget: leftTitleWidgets,
-            reservedSize: 42,
-          ),
-        ),
-      ),
-      borderData: FlBorderData(
-        show: true,
-        border: Border.all(color: const Color(0xff37434d)),
-      ),
-      minX: 0,
-      maxX: 11,
-      minY: 0,
-      maxY: 6,
-      lineBarsData: [
-        LineChartBarData(
-          spots: const [
-            FlSpot(0, 3),
-            FlSpot(2.6, 2),
-            FlSpot(4.9, 5),
-            FlSpot(6.8, 3.1),
-            FlSpot(8, 4),
-            FlSpot(9.5, 3),
-            FlSpot(11, 4),
-          ],
-          isCurved: true,
-          gradient: LinearGradient(
-            colors: gradientColors,
-          ),
-          barWidth: 5,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(
-            show: false,
-          ),
-          belowBarData: BarAreaData(
-            show: true,
-            gradient: LinearGradient(
-              colors: gradientColors
-                  .map((color) => color.withOpacity(0.3))
-                  .toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget bottomTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
-    );
-    Widget text;
-    switch (value.toInt()) {
-      case 2:
-        text = const Text('MAR', style: style);
-        break;
-      case 5:
-        text = const Text('JUN', style: style);
-        break;
-      case 8:
-        text = const Text('SEP', style: style);
-        break;
-      default:
-        text = const Text('', style: style);
-        break;
-    }
-
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      child: text,
-    );
-  }
-
-  Widget leftTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 15,
-    );
-    String text;
-    switch (value.toInt()) {
-      case 1:
-        text = '10K';
-        break;
-      case 3:
-        text = '30k';
-        break;
-      case 5:
-        text = '50k';
-        break;
-      default:
-        return Container();
-    }
-
-    return Text(text, style: style, textAlign: TextAlign.left);
-  }
-
-  LineChartData avgData() {
-    return LineChartData(
-      lineTouchData: const LineTouchData(enabled: false),
-      gridData: FlGridData(
-        show: true,
-        drawHorizontalLine: true,
-        verticalInterval: 1,
-        horizontalInterval: 1,
-        getDrawingVerticalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-        getDrawingHorizontalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-      ),
-      titlesData: FlTitlesData(
-        show: true,
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 30,
-            getTitlesWidget: bottomTitleWidgets,
-            interval: 1,
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: leftTitleWidgets,
-            reservedSize: 42,
-            interval: 1,
-          ),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
-      borderData: FlBorderData(
-        show: true,
-        border: Border.all(color: const Color(0xff37434d)),
-      ),
-      minX: 0,
-      maxX: 11,
-      minY: 0,
-      maxY: 6,
-      lineBarsData: [
-        LineChartBarData(
-          spots: const [
-            FlSpot(0, 3.44),
-            FlSpot(2.6, 3.44),
-            FlSpot(4.9, 3.44),
-            FlSpot(6.8, 3.44),
-            FlSpot(8, 3.44),
-            FlSpot(9.5, 3.44),
-            FlSpot(11, 3.44),
-          ],
-          isCurved: true,
-          gradient: LinearGradient(
-            colors: [
-              ColorTween(begin: gradientColors[0], end: gradientColors[1])
-                  .lerp(0.2)!,
-              ColorTween(begin: gradientColors[0], end: gradientColors[1])
-                  .lerp(0.2)!,
-            ],
-          ),
-          barWidth: 5,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(
-            show: false,
-          ),
-          belowBarData: BarAreaData(
-            show: true,
-            gradient: LinearGradient(
-              colors: [
-                ColorTween(begin: gradientColors[0], end: gradientColors[1])
-                    .lerp(0.2)!
-                    .withOpacity(0.1),
-                ColorTween(begin: gradientColors[0], end: gradientColors[1])
-                    .lerp(0.2)!
-                    .withOpacity(0.1),
+                )
               ],
             ),
-          ),
-        ),
-      ],
+        )
+        : Container();
+  }
+
+  LineChartBarData sinLine(List<FlSpot> points) {
+    return LineChartBarData(
+      spots: points,
+      dotData: const FlDotData(
+        show: false,
+      ),
+      gradient: LinearGradient(
+        colors: [widget.sinColor.withOpacity(0), widget.sinColor],
+        stops: const [0.1, 1.0],
+      ),
+      barWidth: 4,
+      isCurved: false,
     );
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
   }
 }

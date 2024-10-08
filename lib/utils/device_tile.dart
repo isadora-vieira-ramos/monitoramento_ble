@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:monitoramento_ble/screens/graphs.dart';
 import 'package:monitoramento_ble/screens/graphs.dart';
 import 'package:monitoramento_ble/utils/extra.dart';
 
@@ -83,7 +85,7 @@ class _DeviceTileState extends State<DeviceTile> {
   }
 
   void showGraphs(){
-    Navigator.push(context, MaterialPageRoute(builder: (context) => Graphs(read: read)));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => GraphsScreen(read: read)));
   }
 
   void connectFirst(){
