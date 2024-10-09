@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +26,9 @@ class _GraphsScreenState extends State<GraphsScreen> {
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(milliseconds: 40), (timer) async {
+    valuesRead.add(FlSpot.zero);
+    valuesRead.add(FlSpot(xValue, 5));
+    timer = Timer.periodic(const Duration(milliseconds: 10000), (timer) async {
       while (valuesRead.length > limitCount) {
         valuesRead.removeAt(0);
       }

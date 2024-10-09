@@ -1,10 +1,7 @@
 import 'dart:async';
-
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:monitoramento_ble/screens/graphs.dart';
 import 'package:monitoramento_ble/screens/graphs.dart';
 import 'package:monitoramento_ble/utils/extra.dart';
 
@@ -47,6 +44,7 @@ class _DeviceTileState extends State<DeviceTile> {
       (value) => Fluttertoast.showToast(msg: "Conectado!.")
       ).catchError((e) {
         Fluttertoast.showToast(msg: "Não foi possível conectar.");
+        return null;
       }
     );
   }
@@ -69,7 +67,6 @@ class _DeviceTileState extends State<DeviceTile> {
             for (BluetoothCharacteristic characteristic in service.characteristics) {
               if(characteristic.uuid.toString() == "beb5483e-36e1-4688-b7f5-ea07361b26a8"){
                 List<int> value = await characteristic.read();
-                Fluttertoast.showToast(msg: value.toString());
                 return value[0];
               }
             }
