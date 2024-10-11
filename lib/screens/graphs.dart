@@ -18,7 +18,8 @@ class GraphsScreen extends StatefulWidget {
 class _GraphsScreenState extends State<GraphsScreen> {
   final limitCount = 100;
   final valuesRead = <FlSpot>[];
-
+  double currentMinX = 0;
+  double currentMaxX = 100;
   double xValue = 0;
   double step = 1;
 
@@ -38,6 +39,18 @@ class _GraphsScreenState extends State<GraphsScreen> {
         valuesRead.add(FlSpot(xValue, dValue));
       });
       xValue += step;
+      if(xValue >= 100 && xValue < 1000){
+        var remainder = xValue % 100;
+        if(remainder == 0){
+          var divideByHundred = (xValue / 100).floor();
+          setState(() {
+            currentMinX = divideByHundred * 100;
+            currentMaxX = currentMinX + 100;
+          });
+        }
+      }else if(xValue >= 1000){
+        dispose();
+      }
     });
   }
 
@@ -47,25 +60,13 @@ class _GraphsScreenState extends State<GraphsScreen> {
       fontSize: 16,
     );
     Widget text;
-    switch (value.toInt()) {
-      case 0:
-        text = const Text('0', style: style);
-        break;
-      case 25:
-        text = const Text('25', style: style);
-        break;
-      case 50:
-        text = const Text('50', style: style);
-        break;
-      case 75:
-        text = const Text('75', style: style);
-        break;
-      case 100:
-        text = const Text('100', style: style);
-        break;
-      default:
-        text = const Text('', style: style);
-        break;
+
+    if(value == 0){
+      text = const Text('0', style: style);
+    }else if(value%25 == 0){
+      text = Text(value.toInt().toString(), style: style);
+    }else{
+      text = const Text('', style: style);
     }
 
     return SideTitleWidget(
@@ -141,8 +142,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
                         LineChartData(
                           minY: -1,
                           maxY: 256,
-                          minX: 0,
-                          maxX: 100,
+                          minX: currentMinX,
+                          maxX: currentMaxX,
                           lineTouchData: const LineTouchData(enabled: false),
                           clipData: const FlClipData.all(),
                           gridData: const FlGridData(
