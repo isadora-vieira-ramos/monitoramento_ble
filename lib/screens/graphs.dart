@@ -16,12 +16,13 @@ class GraphsScreen extends StatefulWidget {
 }
 
 class _GraphsScreenState extends State<GraphsScreen> {
-  final limitCount = 100;
+  //final limitCount = 100;
   final valuesRead = <FlSpot>[];
   double currentMinX = 0;
   double currentMaxX = 100;
   double xValue = 0;
   double step = 1;
+
 
   late Timer timer;
 
@@ -30,9 +31,9 @@ class _GraphsScreenState extends State<GraphsScreen> {
     super.initState();
     valuesRead.add(FlSpot.zero);
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
-      while (valuesRead.length > limitCount) {
-        valuesRead.removeAt(0);
-      }
+      // while (valuesRead.length > limitCount) {
+      //   valuesRead.removeAt(0);
+      // }
       int value = await widget.read();
       double dValue = value.toDouble();
       setState(() {
@@ -136,52 +137,66 @@ class _GraphsScreenState extends State<GraphsScreen> {
                   ),
                   AspectRatio(
                     aspectRatio: 1.5,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 24.0),
-                      child: LineChart(
-                        LineChartData(
-                          minY: -1,
-                          maxY: 256,
-                          minX: currentMinX,
-                          maxX: currentMaxX,
-                          lineTouchData: const LineTouchData(enabled: false),
-                          clipData: const FlClipData.all(),
-                          gridData: const FlGridData(
-                            show: true,
-                            drawVerticalLine: false,
-                          ),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [
-                            sinLine(valuesRead),
-                          ],
-                          titlesData: FlTitlesData(
-                            show: true,
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 30,
-                                getTitlesWidget: bottomTitleWidgets,
-                                interval: 1,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        width: currentMaxX * 3.5,
+                        child: Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: LineChart(
+                            LineChartData(
+                              minY: -1,
+                              maxY: 256,
+                              minX: 0,
+                              maxX: currentMaxX,
+                              lineTouchData: const LineTouchData(enabled: false),
+                              clipData: const FlClipData.all(),
+                              gridData: const FlGridData(
+                                show: true,
+                                drawVerticalLine: false,
                               ),
-                            ),
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: leftTitleWidgets,
-                                reservedSize: 42,
-                                interval: 1,
+                              borderData: FlBorderData(show: false),
+                              lineBarsData: [
+                                sinLine(valuesRead),
+                              ],
+                              titlesData: FlTitlesData(
+                                show: true,
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 30,
+                                    getTitlesWidget: bottomTitleWidgets,
+                                    interval: 1,
+                                  ),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: leftTitleWidgets,
+                                    reservedSize: 42,
+                                    interval: 1,
+                                  ),
+                                ),
+                                topTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                rightTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
                               ),
-                            ),
-                            topTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            rightTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
                             ),
                           ),
                         ),
                       ),
                     ),
+                  ),
+                  const Text("Role para o lado para visualizar o gráfico inteiro."),
+                  TextButton(
+                    onPressed: (){
+                      currentMaxX = 100;
+                      xValue = 0;
+                    }, 
+                    child: const Text("Reiniciar")
                   )
                 ],
               ),
