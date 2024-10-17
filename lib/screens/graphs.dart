@@ -16,7 +16,6 @@ class GraphsScreen extends StatefulWidget {
 }
 
 class _GraphsScreenState extends State<GraphsScreen> {
-  //final limitCount = 100;
   final valuesRead = <FlSpot>[];
   double currentMinX = 0;
   double currentMaxX = 100;
@@ -31,9 +30,6 @@ class _GraphsScreenState extends State<GraphsScreen> {
     super.initState();
     valuesRead.add(FlSpot.zero);
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
-      // while (valuesRead.length > limitCount) {
-      //   valuesRead.removeAt(0);
-      // }
       int value = await widget.read();
       double dValue = value.toDouble();
       setState(() {
