@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:monitoramento_ble/models/file.dart';
 
 class GraphsScreen extends StatefulWidget {
   final Future<int> Function() read;
@@ -22,7 +24,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
   double xValue = 0;
   double step = 1;
 
-
+  Files files = Files(spots: []);
   late Timer timer;
 
   @override
@@ -32,8 +34,16 @@ class _GraphsScreenState extends State<GraphsScreen> {
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
       int value = await widget.read();
       double dValue = value.toDouble();
+      FlSpot spot = FlSpot(xValue, dValue);
+      String? spotsread = await files.readSpotFromFile();
+      
+      if(spotsread != null) {
+        Fluttertoast.showToast(msg: spotsread);
+      }
+
+      files.writeSpotToFile(spot);
       setState(() {
-        valuesRead.add(FlSpot(xValue, dValue));
+        valuesRead.add(spot);
       });
       xValue += step;
       if(xValue >= 100 && xValue < 1000){
