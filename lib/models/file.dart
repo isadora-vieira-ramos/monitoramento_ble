@@ -1,16 +1,21 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
 
 class Files{
-  List<FlSpot> spots = [];
-  Files({required this.spots});
 
   Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-
-    return directory.path;
+    try{
+      final directory = await getApplicationDocumentsDirectory();
+      return directory.path;
+    }catch(e){
+      Fluttertoast.showToast(msg: 'Erro: ${e.toString()}');
+      return '';
+    }
+    
   }
 
   Future<File> get _localFile async {
@@ -22,7 +27,7 @@ class Files{
     final file = await _localFile;
 
     // Write the file
-    return file.writeAsString('[${spot.x}, ${spot.y}]');
+    return file.writeAsString('[${spot.x},${spot.y}],', mode: FileMode.append);
   }
 
   Future<String?> readSpotFromFile() async {

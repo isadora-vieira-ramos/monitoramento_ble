@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:monitoramento_ble/screens/file_record.dart';
 import 'package:monitoramento_ble/screens/graphs.dart';
 import 'package:monitoramento_ble/utils/extra.dart';
 
@@ -49,13 +50,17 @@ class _DeviceTileState extends State<DeviceTile> {
     );
   }
 
-  Future<void> disconnectToDevice() async {
+  Future<void> disconnectToDevice() async { 
     try {
       await widget.device.disconnectAndUpdateStream();
       Fluttertoast.showToast(msg: "Desconectado");
     } catch (e) {
       Fluttertoast.showToast(msg: "Não foi possível desconectar");
     }
+  }
+
+  void showRecord(){
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const FileRecord()));
   }
 
   Future<int> read() async {
@@ -145,7 +150,7 @@ class _DeviceTileState extends State<DeviceTile> {
                 if(isConnected)...[
                   TextButton(onPressed: disconnectToDevice, child: const Text("Desconectar")),
                 ],   
-                TextButton(onPressed: isConnected? read: connectFirst, child: const Text("Ler")),
+                TextButton(onPressed: showRecord, child: const Text("Histórico")),
                 TextButton(onPressed: isConnected? showGraphs: connectFirst, child: const Text("Visualizar"))
               ],
             ),
