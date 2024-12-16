@@ -24,7 +24,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
   double xValue = 0;
   double step = 1;
 
-  Files files = Files();
+  BLEFile files = BLEFile();
   late Timer timer;
 
   @override

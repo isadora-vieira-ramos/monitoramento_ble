@@ -5,7 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
 
-class Files{
+class BLEFile{
 
   Future<String> get _localPath async {
     try{
@@ -40,6 +40,15 @@ class Files{
       return contents;
     } catch (e) {
       // If encountering an error, return 0
+      return null;
+    }
+  }
+
+  Future<File?> deleteDataFromFile() async {
+    try{
+      final file = await _localFile;
+      return file.writeAsString('', mode: FileMode.write);
+    }catch(e){
       return null;
     }
   }

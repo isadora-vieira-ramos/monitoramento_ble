@@ -50,6 +50,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
         useMaterial3: true,
       ),
+      debugShowCheckedModeBanner: false,
       home: screen,
       navigatorObservers: [BluetoothAdapterStateObserver()]
     );
