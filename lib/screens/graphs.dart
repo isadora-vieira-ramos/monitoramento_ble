@@ -37,10 +37,12 @@ class _GraphsScreenState extends State<GraphsScreen> {
       
       FlSpot spot = FlSpot(xValue, dValue);
       files.writeSpotToFile(spot);
+      if(mounted){
+        setState(() {
+          valuesRead.add(spot);
+        });
+      }
       
-      setState(() {
-        valuesRead.add(spot);
-      });
       
       xValue += step;
       if(xValue >= 100 && xValue < 1000){
@@ -112,6 +114,12 @@ class _GraphsScreenState extends State<GraphsScreen> {
   Widget build(BuildContext context) {
     return valuesRead.isNotEmpty
         ? Scaffold(
+          appBar: AppBar(
+            leading: const BackButton(
+              color: Colors.white
+            ),
+            backgroundColor: Colors.blue.shade700,
+          ),
           backgroundColor: Colors.grey.shade200,
           body: Padding(
             padding: const EdgeInsets.all(20.0),

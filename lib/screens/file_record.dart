@@ -21,7 +21,7 @@ class _FileRecordState extends State<FileRecord> {
   Future<void> readFileWithSpots() async {
     fileContent = await file.readSpotFromFile();
     if(fileContent != null){
-      spotList = fileContent!.split("],");
+      spotList = fileContent!.split("],").map((x) => x = "$x]").toList();
     }
   }
 
@@ -30,18 +30,18 @@ class _FileRecordState extends State<FileRecord> {
     setState(() {
       spotList = [];
     });
-    // var fileContent = await emptyFile!.readAsString();
-    // if(emptyFile != null && fileContent.isEmpty){
-    //   setState(() {
-    //     spotList = ['Arquivo vazio.'];
-    //   });
-    // }
   }
 
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
+      appBar: AppBar(
+        leading: const BackButton(
+          color: Colors.white
+        ),
+        backgroundColor: Colors.blue.shade700,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: FutureBuilder(
@@ -57,7 +57,7 @@ class _FileRecordState extends State<FileRecord> {
                   if(spotList.length > 1)...[
                     Expanded(
                       child: ListView.builder(
-                        itemCount: spotList.length < 20? spotList.length : 20,
+                        itemCount: spotList.length,
                         itemBuilder: (context, index) {
                           return Text(spotList[index]);
                         },
